@@ -188,7 +188,7 @@ function serializeFormData(formData) {
                 targetObject[index] = {};
             }
             
-            if (field === 'is_jointly') {
+            if (field === 'is_jointly' || field === 'is_pledged') {
                 targetObject[index][field] = value === 'on';
             } else if (field === 'salary' || field === 'cost' || 
                        field === 'monthly_payment' || field === 'total_liability') {
@@ -215,11 +215,19 @@ function serializeFormData(formData) {
             'Сумма в месяц': item.salary || 0
         }));
 
+    // Получаем все ежемесячные расходы
     const houseExpenses = parseInt(formData.get('house_expenses')) || 0;
     const foodExpenses = parseInt(formData.get('food_expenses')) || 0;
     const transportExpenses = parseInt(formData.get('transport_expenses')) || 0;
+    const medicalExpenses = parseInt(formData.get('medical_expenses')) || 0;
+    const mobileExpenses = parseInt(formData.get('mobile_expenses')) || 0;
+    const childrenExpenses = parseInt(formData.get('children_expenses')) || 0;
+    const fspExpenses = parseInt(formData.get('fsp_expenses')) || 0;
+    const utilitiesExpenses = parseInt(formData.get('utilities_expenses')) || 0;
     
+    // Создаем массив всех ежемесячных расходов
     const monthly_expenses = [];
+    
     if (houseExpenses > 0) {
         monthly_expenses.push({
             'Вид расходов': 'Расходы на аренду жилья',
@@ -234,8 +242,38 @@ function serializeFormData(formData) {
     }
     if (transportExpenses > 0) {
         monthly_expenses.push({
-            'Вид расходов': 'Расходы на транспорт и гсм',
+            'Вид расходов': 'Расходы на транспорт и ГСМ',
             'Сумма в месяц': transportExpenses
+        });
+    }
+    if (medicalExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Расходы на медицину',
+            'Сумма в месяц': medicalExpenses
+        });
+    }
+    if (mobileExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Расходы на мобильную связь',
+            'Сумма в месяц': mobileExpenses
+        });
+    }
+    if (childrenExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Содержание детей',
+            'Сумма в месяц': childrenExpenses
+        });
+    }
+    if (fspExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Удержания от ФСП',
+            'Сумма в месяц': fspExpenses
+        });
+    }
+    if (utilitiesExpenses > 0) {
+        monthly_expenses.push({
+            'Вид расходов': 'Коммунальные платежи',
+            'Сумма в месяц': utilitiesExpenses
         });
     }
 
@@ -246,6 +284,11 @@ function serializeFormData(formData) {
             'Ежемесячный платеж': item.monthly_payment || 0,
             'Общая сумма обязательства': item.total_liability || 0
         }));
+
+    // Получаем дополнительные флаги
+    const isCoBorrower = formData.get('is_co_borrower') === 'on';
+    const hasTransactions = formData.get('has_transactions') === 'on';
+    const hasOverdues = formData.get('has_overdues') === 'on';
 
     const payload = {
         type: "liability",
@@ -261,7 +304,11 @@ function serializeFormData(formData) {
         property: property,
         sources_of_official_income: sources_of_official_income,
         monthly_expenses: monthly_expenses,
-        liabilities: liabilities
+        liabilities: liabilities,
+        // Добавляем дополнительные флаги
+        is_co_borrower: isCoBorrower,
+        has_transactions: hasTransactions,
+        has_overdues: hasOverdues
     };
 
     return payload;
